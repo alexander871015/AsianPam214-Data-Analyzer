@@ -12,6 +12,7 @@ def parse_data(name):
     with open(output_file, 'w') as outfile:
         with open(file_name, 'r') as inf:
             for tweet in inf:
+                # Regex syntax to remove twitter's weird syntax for scraped tweets
                 sentence_temp = re.sub(r'b\'RT ', "", tweet.rstrip())
                 sentence_temp_2 = re.sub('b\'', "", sentence_temp)
                 sentence_temp_3 = re.sub('\\\\\w*', "", sentence_temp_2)
@@ -40,9 +41,12 @@ def analyze(name):
     tweets = ""
 
     with open(file_name, 'r') as ins:
+        # Need list of tweets instead of analyzing them all together
+        # because size will be too big and an error will be thrown
         counter = 0
         for tweet in ins:
             if(counter == 3000):
+                # Limit each tagging process to be 3000 tweets
                 data.append(tweets)
                 counter = 0
                 tweets = ""
@@ -51,10 +55,15 @@ def analyze(name):
 
     adjective_count = {}
     for tweets in data:
+        # Split the analysis while maintaining a dictionary to ensure all tweets are accounted for
         nlp = spacy.load('en_core_web_sm')
         doc = nlp(tweets)
+
+        # Customize which kind of part of speech you want to analyze
         adj = [token.text for token in doc if token.is_stop != True and token.is_punct != True and token.pos_ == "ADJ"]
+
         for text in adj:
+            # Populate the dictionary
             text_lower = text.lower()
             if name not in text_lower:
                 if text_lower in adjective_count.keys():
@@ -62,6 +71,7 @@ def analyze(name):
                 else:
                     adjective_count[text_lower] = 1
 
+    # Figure out which one has the highest reoccurance
     priority_queue = []
     for key, val in adjective_count.items():
         heapq.heappush(priority_queue, (val, key))
